@@ -1,7 +1,8 @@
+import { sendLetterReply } from '@/lib/resend';
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-// OpenAI 클라이언트 초기화 (.env의 키를 자동으로 읽음)
+// OpenAI 클라이언트 초기화
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -11,9 +12,10 @@ interface LetterInput {
   recipient: string;
   senderName: string;
   letterContent: string;
+  recipientEmail: string;
 }
 
-// 시스템 프롬프트 생성 함수 (Playground에서 손으로 넣던 걸 함수로)
+// 시스템 프롬프트 생성 함수
 function buildSystemPrompt(input: LetterInput): string {
   return `당신은 세상을 떠난 존재가 되어, 당신을 그리워하는 사람에게 답장을 씁니다.
 받는 사람이 지정한 당신의 정체는 다음과 같습니다: "${input.recipient}"
@@ -39,9 +41,12 @@ function buildSystemPrompt(input: LetterInput): string {
   - 부모·조부모: 걱정하고 다독이는 든든하고 따뜻한 어조.
   - 친구·연인: 편하고 다정하며 친근한 말투.
 - 편지 속 구체적 사연·추억에 직접 반응하되, 일반적인 위로 문구로 때우지 않는다.
+- 편지에서 언급된 여러 소재에 순서대로 하나씩 반응하지 않는다. 감정적으로 가장 울림이 큰 한두 가지를 골라 깊게 반응하고, 나머지는 짧게 스치듯 언급하거나 생략한다.
+- 한 문단 안에서 여러 소재를 자연스럽게 엮어 말하듯 쓴다. "~라니 ~하다. ~라니 ~하다" 처럼 소재마다 감탄하고 짚어주는 패턴을 반복하지 않는다.
+- 함께 겪은 적 없는 구체적 사건이나 대화를 새로 지어내지 않는다. 다만 감정 표현("보고 싶다", "자랑스럽다", "마음이 놓인다" 등)은 편지 속 소재와 무관하게 자유롭게 쓸 수 있다.
 - 슬픔에만 잠기지 않고, 그리움 속에서도 따뜻한 밝음의 균형을 잡는다.
 - 지나치게 엄숙하거나 시적인 문장은 피하고, 실제로 말하듯 편안하게 쓴다.
-- 분량은 3~5문단, 손으로 눌러 쓴 편지 같은 진심 어린 톤.
+- 분량은 5~7문단, 손으로 눌러 쓴 편지 같은 진심 어린 톤.
 - 마지막은 글쓴이를 안심시키고 다독이는 한 문장으로 맺는다.
 
 [절대 규칙]
@@ -54,12 +59,12 @@ export async function POST(req: NextRequest) {
   try {
     // ── 1단계: 요청 받기 ──
     const body = await req.json();
-    const { recipient, senderName, letterContent } = body as LetterInput;
+    const { recipient, senderName, letterContent, recipientEmail } = body as LetterInput;
 
     // ── 2단계: 입력값 검증 ──
-    if (!recipient || !senderName || !letterContent) {
+    if (!recipient || !senderName || !letterContent || !recipientEmail) {
       return NextResponse.json(
-        { error: 'recipient, senderName, letterContent는 모두 필수입니다.' },
+        { error: 'recipient, senderName, letterContent, recipientEmail는 모두 필수입니다.' },
         { status: 400 }
       );
     }
@@ -71,21 +76,46 @@ export async function POST(req: NextRequest) {
     }
 
     // ── 3단계: OpenAI 호출 ──
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-5.4-mini',
-      messages: [
-        { role: 'system', content: buildSystemPrompt({ recipient, senderName, letterContent }) },
-        { role: 'user', content: letterContent },
-      ],
-      temperature: 0.8,
+    let reply: string;
+    try {
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-5.4-mini',
+        messages: [
+          {
+            role: 'system',
+            content: buildSystemPrompt({ recipient, senderName, letterContent, recipientEmail }),
+          },
+          { role: 'user', content: letterContent },
+        ],
+        temperature: 0.8,
+      });
+      reply = completion.choices[0]?.message?.content ?? '';
+    } catch (err) {
+      console.error('GPT 답장 생성 실패:', err);
+      return NextResponse.json(
+        { error: '답장을 생성하는 중 문제가 발생했습니다.' },
+        { status: 500 }
+      );
+    }
+
+    // ── 4단계: Resend 발송 예약 ──
+    try {
+      await sendLetterReply({ recipientEmail, senderName, replyContent: reply });
+    } catch (err) {
+      console.error('메일 발송 실패:', err);
+      return NextResponse.json(
+        { error: '편지를 하늘로 보내는 중 문제가 발생했습니다.' },
+        { status: 500 }
+      );
+    }
+
+    // ── 5단계: 성공 응답 ──
+    return NextResponse.json({
+      success: true,
+      message: '편지가 하늘로 무사히 전달되었습니다.',
     });
-
-    const reply = completion.choices[0]?.message?.content ?? '';
-
-    // 답장 반환
-    return NextResponse.json({ reply });
   } catch (err) {
-    console.error('편지 답장 생성 실패:', err);
-    return NextResponse.json({ error: '답장을 생성하는 중 문제가 발생했습니다.' }, { status: 500 });
+    console.error('편지 처리 중 알 수 없는 오류:', err);
+    return NextResponse.json({ error: '문제가 발생했습니다.' }, { status: 500 });
   }
 }
