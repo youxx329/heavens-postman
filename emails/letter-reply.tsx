@@ -35,10 +35,10 @@ export default function LetterReplyEmail({ senderName, body }: LetterReplyEmailP
       <Preview>{senderName}에게.</Preview>
 
       <Tailwind>
-        <Body className="bg-[#FAF6EF] font-serif m-0 p-0">
-          <Container className="mx-auto max-w-[480px] py-20 px-8">
+        <Body className=" font-serif m-0 p-0 bg-white">
+          <Container className="mx-auto max-w-120 py-20 px-8 bg-[#fdfbf7]">
             <Section>
-              <Text className="break-keep text-[15px] leading-[2] text-[#3A3630] whitespace-pre-line m-0">
+              <Text className="break-keep text-[15px] leading-loose text-[#3A3630] whitespace-pre-line m-0">
                 {senderName}에게,
                 {'\n\n'}
                 {body}
