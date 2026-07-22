@@ -5,13 +5,13 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 interface SendLetterReplyParams {
-  recipientEmail: string;
+  senderEmail: string;
   senderName: string;
   replyContent: string;
 }
 
 export async function sendLetterReply({
-  recipientEmail,
+  senderEmail,
   senderName,
   replyContent,
 }: SendLetterReplyParams): Promise<void> {
@@ -28,7 +28,7 @@ export async function sendLetterReply({
 
   const { error } = await resend.emails.send({
     from: `천국의 우편배달부 <${process.env.FROM_EMAIL}>`,
-    to: recipientEmail,
+    to: senderEmail,
     subject: `하늘에서 온 편지 한 통이 도착했습니다. 💫`,
     html: emailHtml,
     scheduledAt,
