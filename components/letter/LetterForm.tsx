@@ -1,30 +1,28 @@
 'use client';
 
+import type { LetterInput } from '@/types/letter';
 import { useState } from 'react';
 
 type Step = 'writing' | 'email' | 'sending' | 'done';
 
-interface FormData {
-  recipient: string;
-  senderName: string;
-  content: string;
-  email: string;
-}
-
 export default function LetterForm() {
   const [step, setStep] = useState<Step>('writing');
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<LetterInput>({
     recipient: '',
     senderName: '',
-    content: '',
-    email: '',
+    letterContent: '',
+    senderEmail: '',
   });
 
   const [error, setError] = useState<string | null>(null);
 
   // "하늘로 보내기" 클릭 → 아직 API 호출 안 함, 그냥 다음 단계로
   const handleProceedToEmail = () => {
-    if (!formData.recipient.trim() || !formData.senderName.trim() || !formData.content.trim()) {
+    if (
+      !formData.recipient.trim() ||
+      !formData.senderName.trim() ||
+      !formData.letterContent.trim()
+    ) {
       setError('편지가 아직 다 쓰이지 않은 것 같아요.');
       return;
     }
@@ -34,7 +32,7 @@ export default function LetterForm() {
 
   // "답장 기다리기" 클릭 → 실제 API 호출은 여기서
   const handleSubmit = async () => {
-    if (!isValidEmail(formData.email)) {
+    if (!isValidEmail(formData.senderEmail)) {
       setError('이 주소로는 답장이 길을 잃을 것 같아요. 메일 주소를 다시 한 번 확인해 주세요.');
       return;
     }
@@ -55,7 +53,18 @@ export default function LetterForm() {
     }
   };
 
-  const updateField = (field: keyof FormData, value: string) => {
+  // "또 다른 편지 쓰기" 클릭 -> 첫 단계로 돌아가기
+  const handleResetForm = () => {
+    setFormData({
+      recipient: '',
+      senderName: '',
+      letterContent: '',
+      senderEmail: '',
+    });
+    setStep('writing');
+  };
+
+  const updateField = (field: keyof LetterInput, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -84,8 +93,8 @@ export default function LetterForm() {
             className="w-full border-b border-gray-300 bg-transparent py-2 focus:outline-none"
           />
           <textarea
-            value={formData.content}
-            onChange={(e) => updateField('content', e.target.value)}
+            value={formData.letterContent}
+            onChange={(e) => updateField('letterContent', e.target.value)}
             placeholder="편지 내용을 적어주세요"
             className="w-full resize-none border-b border-gray-300 bg-transparent py-2 focus:outline-none"
           ></textarea>
@@ -111,8 +120,8 @@ export default function LetterForm() {
           </p>
           <input
             type="email"
-            value={formData.email}
-            onChange={(e) => updateField('email', e.target.value)}
+            value={formData.senderEmail}
+            onChange={(e) => updateField('senderEmail', e.target.value)}
             placeholder="you@example.com"
             className="w-full border-b border-gray-300 bg-transparent py-2 text-center focus:outline-none"
           />
@@ -138,6 +147,10 @@ export default function LetterForm() {
         <div key="done" className="animate-fade-in space-y-2 text-center">
           <p>당신의 편지가 하늘로 전달되었습니다.</p>
           <p className="text-gray-500">약 10분 후, 당신의 메일함으로 전해드릴게요.</p>
+          <div className="flex gap-2">
+            <button onClick={handleResetForm}>또 다른 편지 쓰기</button>
+            <button>마치기</button>
+          </div>
         </div>
       )}
     </div>

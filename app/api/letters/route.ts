@@ -1,4 +1,5 @@
 import { sendLetterReply } from '@/lib/resend';
+import type { LetterInput } from '@/types/letter';
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
@@ -6,14 +7,6 @@ import OpenAI from 'openai';
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-
-// 입력값 구조
-interface LetterInput {
-  recipient: string;
-  senderName: string;
-  letterContent: string;
-  recipientEmail: string;
-}
 
 // 시스템 프롬프트 생성 함수
 function buildSystemPrompt(input: LetterInput): string {
@@ -58,11 +51,11 @@ function buildSystemPrompt(input: LetterInput): string {
 export async function POST(req: NextRequest) {
   try {
     // ── 1단계: 요청 받기 ──
-    const body = await req.json();
-    const { recipient, senderName, letterContent, recipientEmail } = body as LetterInput;
+    const body: LetterInput = await req.json();
+    const { recipient, senderName, letterContent, senderEmail } = body as LetterInput;
 
     // ── 2단계: 입력값 검증 ──
-    if (!recipient || !senderName || !letterContent || !recipientEmail) {
+    if (!recipient || !senderName || !letterContent || !senderEmail) {
       return NextResponse.json(
         { error: 'recipient, senderName, letterContent, recipientEmail는 모두 필수입니다.' },
         { status: 400 }
@@ -83,7 +76,7 @@ export async function POST(req: NextRequest) {
         messages: [
           {
             role: 'system',
-            content: buildSystemPrompt({ recipient, senderName, letterContent, recipientEmail }),
+            content: buildSystemPrompt({ recipient, senderName, letterContent, senderEmail }),
           },
           { role: 'user', content: letterContent },
         ],
@@ -100,7 +93,7 @@ export async function POST(req: NextRequest) {
 
     // ── 4단계: Resend 발송 예약 ──
     try {
-      await sendLetterReply({ recipientEmail, senderName, replyContent: reply });
+      await sendLetterReply({ senderEmail, senderName, replyContent: reply });
     } catch (err) {
       console.error('메일 발송 실패:', err);
       return NextResponse.json(
