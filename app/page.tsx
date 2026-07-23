@@ -1,9 +1,10 @@
-import LetterForm from '@/components/letter/LetterForm';
+import ShaderBackground from '@/components/landing/ShaderBackground';
 
 export default function Home() {
   return (
-    <main>
-      <LetterForm />
+    <main className="relative w-full h-screen">
+      <ShaderBackground />
+      {/* <LetterForm /> */}
     </main>
   );
 }
