@@ -1,236 +1,24 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-// WebGL Renderer class
-class WebGLRenderer {
+const FADE_DURATION = 1.2; // 영상 크로스페이드 길이(초)
+const VIDEO_SRC = '/clouds-sunset.mp4'; // public 폴더 경로로 수정
+
+// ---------- 불빛(streak) 셰이더 렌더러 ----------
+class StreakRenderer {
   private canvas: HTMLCanvasElement;
   private gl: WebGL2RenderingContext;
   private program: WebGLProgram | null = null;
-  private vs: WebGLShader | null = null;
-  private fs: WebGLShader | null = null;
   private buffer: WebGLBuffer | null = null;
   private scale: number;
-  private shaderSource: string;
-  private mouseMove = [0, 0];
-  private mouseCoords = [0, 0];
-  private pointerCoords = [0, 0];
-  private nbrOfPointers = 0;
 
   private vertexSrc = `#version 300 es
 precision highp float;
 in vec4 position;
 void main(){gl_Position=position;}`;
 
-  private vertices = [-1, 1, -1, -1, 1, 1, 1, -1];
-
-  constructor(canvas: HTMLCanvasElement, scale: number) {
-    this.canvas = canvas;
-    this.scale = scale;
-    this.gl = canvas.getContext('webgl2')!;
-    this.gl.viewport(0, 0, canvas.width * scale, canvas.height * scale);
-    this.shaderSource = defaultShaderSource;
-  }
-
-  updateShader(source: string) {
-    this.reset();
-    this.shaderSource = source;
-    this.setup();
-    this.init();
-  }
-
-  updateMove(deltas: number[]) {
-    this.mouseMove = deltas;
-  }
-
-  updateMouse(coords: number[]) {
-    this.mouseCoords = coords;
-  }
-
-  updatePointerCoords(coords: number[]) {
-    this.pointerCoords = coords;
-  }
-
-  updatePointerCount(nbr: number) {
-    this.nbrOfPointers = nbr;
-  }
-
-  updateScale(scale: number) {
-    this.scale = scale;
-    this.gl.viewport(0, 0, this.canvas.width * scale, this.canvas.height * scale);
-  }
-
-  compile(shader: WebGLShader, source: string) {
-    const gl = this.gl;
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
-
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      const error = gl.getShaderInfoLog(shader);
-      console.error('Shader compilation error:', error);
-    }
-  }
-
-  test(source: string) {
-    let result = null;
-    const gl = this.gl;
-    const shader = gl.createShader(gl.FRAGMENT_SHADER)!;
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
-
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      result = gl.getShaderInfoLog(shader);
-    }
-    gl.deleteShader(shader);
-    return result;
-  }
-
-  reset() {
-    const gl = this.gl;
-    if (this.program && !gl.getProgramParameter(this.program, gl.DELETE_STATUS)) {
-      if (this.vs) {
-        gl.detachShader(this.program, this.vs);
-        gl.deleteShader(this.vs);
-      }
-      if (this.fs) {
-        gl.detachShader(this.program, this.fs);
-        gl.deleteShader(this.fs);
-      }
-      gl.deleteProgram(this.program);
-    }
-  }
-
-  setup() {
-    const gl = this.gl;
-    this.vs = gl.createShader(gl.VERTEX_SHADER)!;
-    this.fs = gl.createShader(gl.FRAGMENT_SHADER)!;
-    this.compile(this.vs, this.vertexSrc);
-    this.compile(this.fs, this.shaderSource);
-    this.program = gl.createProgram()!;
-    gl.attachShader(this.program, this.vs);
-    gl.attachShader(this.program, this.fs);
-    gl.linkProgram(this.program);
-
-    if (!gl.getProgramParameter(this.program, gl.LINK_STATUS)) {
-      console.error(gl.getProgramInfoLog(this.program));
-    }
-  }
-
-  init() {
-    const gl = this.gl;
-    const program = this.program!;
-
-    this.buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.vertices), gl.STATIC_DRAW);
-
-    const position = gl.getAttribLocation(program, 'position');
-    gl.enableVertexAttribArray(position);
-    gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
-
-    (program as any).resolution = gl.getUniformLocation(program, 'resolution');
-    (program as any).time = gl.getUniformLocation(program, 'time');
-    (program as any).move = gl.getUniformLocation(program, 'move');
-    (program as any).touch = gl.getUniformLocation(program, 'touch');
-    (program as any).pointerCount = gl.getUniformLocation(program, 'pointerCount');
-    (program as any).pointers = gl.getUniformLocation(program, 'pointers');
-  }
-
-  render(now = 0) {
-    const gl = this.gl;
-    const program = this.program;
-
-    if (!program || gl.getProgramParameter(program, gl.DELETE_STATUS)) return;
-
-    gl.clearColor(0, 0, 0, 1);
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.useProgram(program);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
-
-    gl.uniform2f((program as any).resolution, this.canvas.width, this.canvas.height);
-    gl.uniform1f((program as any).time, now * 1e-3);
-    gl.uniform2f((program as any).move, ...(this.mouseMove as [number, number]));
-    gl.uniform2f((program as any).touch, ...(this.mouseCoords as [number, number]));
-    gl.uniform1i((program as any).pointerCount, this.nbrOfPointers);
-    gl.uniform2fv((program as any).pointers, this.pointerCoords);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-  }
-}
-
-// Pointer Handler class
-class PointerHandler {
-  private scale: number;
-  private active = false;
-  private pointers = new Map<number, number[]>();
-  private lastCoords = [0, 0];
-  private moves = [0, 0];
-
-  constructor(element: HTMLCanvasElement, scale: number) {
-    this.scale = scale;
-
-    const map = (element: HTMLCanvasElement, scale: number, x: number, y: number) => [
-      x * scale,
-      element.height - y * scale,
-    ];
-
-    element.addEventListener('pointerdown', (e) => {
-      this.active = true;
-      this.pointers.set(e.pointerId, map(element, this.getScale(), e.clientX, e.clientY));
-    });
-
-    element.addEventListener('pointerup', (e) => {
-      if (this.count === 1) {
-        this.lastCoords = this.first;
-      }
-      this.pointers.delete(e.pointerId);
-      this.active = this.pointers.size > 0;
-    });
-
-    element.addEventListener('pointerleave', (e) => {
-      if (this.count === 1) {
-        this.lastCoords = this.first;
-      }
-      this.pointers.delete(e.pointerId);
-      this.active = this.pointers.size > 0;
-    });
-
-    element.addEventListener('pointermove', (e) => {
-      if (!this.active) return;
-      this.lastCoords = [e.clientX, e.clientY];
-      this.pointers.set(e.pointerId, map(element, this.getScale(), e.clientX, e.clientY));
-      this.moves = [this.moves[0] + e.movementX, this.moves[1] + e.movementY];
-    });
-  }
-
-  getScale() {
-    return this.scale;
-  }
-
-  updateScale(scale: number) {
-    this.scale = scale;
-  }
-
-  get count() {
-    return this.pointers.size;
-  }
-
-  get move() {
-    return this.moves;
-  }
-
-  get coords() {
-    return this.pointers.size > 0 ? Array.from(this.pointers.values()).flat() : [0, 0];
-  }
-
-  get first() {
-    return this.pointers.values().next().value || this.lastCoords;
-  }
-}
-
-const defaultShaderSource = `#version 300 es
-/*********
-* made by Matthias Hurrle (@atzedent)
-*/
+  private fragSrc = `#version 300 es
 precision highp float;
 out vec4 O;
 uniform vec2 resolution;
@@ -239,6 +27,7 @@ uniform float time;
 #define T time
 #define R resolution
 #define MN min(R.x,R.y)
+
 float rnd(vec2 p) {
   p=fract(p*vec2(12.9898,78.233));
   p+=dot(p,p+34.56);
@@ -246,58 +35,142 @@ float rnd(vec2 p) {
 }
 float noise(in vec2 p) {
   vec2 i=floor(p), f=fract(p), u=f*f*(3.-2.*f);
-  float
-  a=rnd(i),
-  b=rnd(i+vec2(1,0)),
-  c=rnd(i+vec2(0,1)),
-  d=rnd(i+1.);
+  float a=rnd(i), b=rnd(i+vec2(1,0)), c=rnd(i+vec2(0,1)), d=rnd(i+1.);
   return mix(mix(a,b,u.x),mix(c,d,u.x),u.y);
 }
-float fbm(vec2 p) {
-  float t=.0, a=1.; mat2 m=mat2(1.,-.5,.2,1.2);
-  for (int i=0; i<5; i++) {
-    t+=a*noise(p);
-    p*=2.*m;
-    a*=.5;
-  }
-  return t;
-}
-float clouds(vec2 p) {
-	float d=1., t=.0;
-	for (float i=.0; i<3.; i++) {
-		float a=d*fbm(i*10.+p.x*.2+.2*(1.+i)*p.y+d+i*i+p);
-		t=mix(t,d,a);
-		d=a;
-		p*=2./(i+1.);
-	}
-	return t;
-}
+
 void main(void) {
-	vec2 uv=(FC-.5*R)/MN,st=uv*vec2(2,1);
-	vec3 col=vec3(0);
-	float bg=clouds(vec2(st.x+T*.5,-st.y));
-	uv*=1.-.3*(sin(T*.2)*.5+.5);
-	for (float i=1.; i<12.; i++) {
-		uv+=.1*cos(i*vec2(.1+.01*i, .8)+i*i+T*.5+.1*uv.x);
-		vec2 p=uv;
-		float d=length(p);
-		col+=.00125/d*(cos(sin(i)*vec3(1,2,3))+1.);
-		float b=noise(i+p+bg*1.731);
-		col+=.002*b/length(max(p,vec2(b*p.x*.02,p.y)));
-		col=mix(col,vec3(bg*.25,bg*.137,bg*.05),d);
-	}
-	O=vec4(col,1);
+  vec2 uv=(FC-.5*R)/MN;
+  vec3 col=vec3(0);
+  uv*=1.-.3*(sin(T*.2)*.5+.5);
+  for (float i=1.; i<12.; i++) {
+    uv+=.1*cos(i*vec2(.1+.01*i, .8)+i*i+T*.5+.1*uv.x);
+    vec2 p=uv;
+    float d=length(p);
+    col+=.00125/d*(cos(sin(i)*vec3(1,2,3))+1.);
+    float b=noise(i+p);
+    col+=.002*b/length(max(p,vec2(b*p.x*.02,p.y)));
+  }
+  O=vec4(col,1);
 }`;
 
-export default function ShaderBackground() {
+  private vertices = [-1, 1, -1, -1, 1, 1, 1, -1];
+
+  constructor(canvas: HTMLCanvasElement, scale: number) {
+    this.canvas = canvas;
+    this.scale = scale;
+    this.gl = canvas.getContext('webgl2', { alpha: true })!;
+    this.gl.viewport(0, 0, canvas.width * scale, canvas.height * scale);
+  }
+
+  compile(shader: WebGLShader, source: string) {
+    const gl = this.gl;
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      console.error('Shader error:', gl.getShaderInfoLog(shader));
+    }
+  }
+
+  setup() {
+    const gl = this.gl;
+    const vs = gl.createShader(gl.VERTEX_SHADER)!;
+    const fs = gl.createShader(gl.FRAGMENT_SHADER)!;
+    this.compile(vs, this.vertexSrc);
+    this.compile(fs, this.fragSrc);
+    this.program = gl.createProgram()!;
+    gl.attachShader(this.program, vs);
+    gl.attachShader(this.program, fs);
+    gl.linkProgram(this.program);
+    if (!gl.getProgramParameter(this.program, gl.LINK_STATUS)) {
+      console.error(gl.getProgramInfoLog(this.program));
+    }
+  }
+
+  init() {
+    const gl = this.gl;
+    const program = this.program!;
+    this.buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.vertices), gl.STATIC_DRAW);
+    const position = gl.getAttribLocation(program, 'position');
+    gl.enableVertexAttribArray(position);
+    gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+    (program as any).resolution = gl.getUniformLocation(program, 'resolution');
+    (program as any).time = gl.getUniformLocation(program, 'time');
+  }
+
+  updateScale(scale: number) {
+    this.scale = scale;
+    this.gl.viewport(0, 0, this.canvas.width * scale, this.canvas.height * scale);
+  }
+
+  render(now: number) {
+    const gl = this.gl;
+    const program = this.program;
+    if (!program) return;
+    gl.clearColor(0, 0, 0, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.useProgram(program);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
+    gl.uniform2f((program as any).resolution, this.canvas.width, this.canvas.height);
+    gl.uniform1f((program as any).time, now * 1e-3);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  }
+}
+
+// ---------- 메인 컴포넌트 ----------
+export default function CloudBackground() {
+  const videoARef = useRef<HTMLVideoElement>(null);
+  const videoBRef = useRef<HTMLVideoElement>(null);
+  const [activeIsA, setActiveIsA] = useState(true);
+  const hasTriggeredRef = useRef(false);
+
+  useEffect(() => {
+    const videoA = videoARef.current;
+    const videoB = videoBRef.current;
+    if (!videoA || !videoB) return;
+
+    videoA.play().catch(() => {});
+
+    const checkAndCrossfade = (activeVideo: HTMLVideoElement, standbyVideo: HTMLVideoElement) => {
+      const duration = activeVideo.duration;
+      if (!duration || isNaN(duration)) return;
+
+      const timeLeft = duration - activeVideo.currentTime;
+
+      if (timeLeft <= FADE_DURATION && !hasTriggeredRef.current) {
+        hasTriggeredRef.current = true;
+        standbyVideo.currentTime = 0;
+        standbyVideo.play().catch(() => {});
+        setActiveIsA((prev) => !prev);
+
+        setTimeout(() => {
+          activeVideo.pause();
+          activeVideo.currentTime = 0;
+          hasTriggeredRef.current = false;
+        }, FADE_DURATION * 1000);
+      }
+    };
+
+    let rafId: number;
+    const loop = () => {
+      const active = activeIsA ? videoA : videoB;
+      const standby = activeIsA ? videoB : videoA;
+      checkAndCrossfade(active, standby);
+      rafId = requestAnimationFrame(loop);
+    };
+    rafId = requestAnimationFrame(loop);
+
+    return () => cancelAnimationFrame(rafId);
+  }, [activeIsA]);
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationFrameRef = useRef<number>();
-  const rendererRef = useRef<WebGLRenderer | null>(null);
-  const pointersRef = useRef<PointerHandler | null>(null);
+  const rendererRef = useRef<StreakRenderer | null>(null);
+  const frameRef = useRef<number>();
 
   useEffect(() => {
     if (!canvasRef.current) return;
-
     const canvas = canvasRef.current;
     const dpr = Math.max(1, 0.5 * window.devicePixelRatio);
 
@@ -308,45 +181,47 @@ export default function ShaderBackground() {
     };
 
     const loop = (now: number) => {
-      if (!rendererRef.current || !pointersRef.current) return;
-
-      rendererRef.current.updateMouse(pointersRef.current.first);
-      rendererRef.current.updatePointerCount(pointersRef.current.count);
-      rendererRef.current.updatePointerCoords(pointersRef.current.coords);
-      rendererRef.current.updateMove(pointersRef.current.move);
-      rendererRef.current.render(now);
-      animationFrameRef.current = requestAnimationFrame(loop);
+      rendererRef.current?.render(now);
+      frameRef.current = requestAnimationFrame(loop);
     };
 
-    rendererRef.current = new WebGLRenderer(canvas, dpr);
-    pointersRef.current = new PointerHandler(canvas, dpr);
-
+    rendererRef.current = new StreakRenderer(canvas, dpr);
     rendererRef.current.setup();
     rendererRef.current.init();
     resize();
-
-    if (rendererRef.current.test(defaultShaderSource) === null) {
-      rendererRef.current.updateShader(defaultShaderSource);
-    }
-
     loop(0);
 
     window.addEventListener('resize', resize);
-
     return () => {
       window.removeEventListener('resize', resize);
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-      rendererRef.current?.reset();
+      if (frameRef.current) cancelAnimationFrame(frameRef.current);
     };
   }, []);
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="absolute inset-0 w-full h-full object-contain touch-none"
-      style={{ background: 'black' }}
-    />
+    <div className="relative w-full h-screen overflow-hidden bg-black">
+      <video
+        ref={videoARef}
+        muted
+        playsInline
+        src={VIDEO_SRC}
+        className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1200 ease-in-out"
+        style={{ opacity: activeIsA ? 1 : 0, transform: 'scaleX(-1)' }}
+      />
+      <video
+        ref={videoBRef}
+        muted
+        playsInline
+        src={VIDEO_SRC}
+        className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1200 ease-in-out"
+        style={{ opacity: activeIsA ? 0 : 1, transform: 'scaleX(-1)' }}
+      />
+
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 w-full h-full pointer-events-none"
+        style={{ mixBlendMode: 'screen' }}
+      />
+    </div>
   );
 }
