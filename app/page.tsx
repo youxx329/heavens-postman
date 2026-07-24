@@ -5,7 +5,7 @@ import ShaderBackground from '@/components/landing/ShaderBackground';
 
 export default function Home() {
   return (
-    <main className="relative w-full h-screen z-10">
+    <main className="relative w-full h-screen">
       <ShaderBackground />
       <SequentialCopy onWriteLetterClick={() => {}} />
       {/* <LetterForm /> */}
