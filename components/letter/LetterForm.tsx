@@ -5,7 +5,11 @@ import { useState } from 'react';
 
 type Step = 'writing' | 'email' | 'sending' | 'done';
 
-export default function LetterForm() {
+interface LetterFormProps {
+  onFinish: () => void;
+}
+
+export default function LetterForm({ onFinish }: LetterFormProps) {
   const [step, setStep] = useState<Step>('writing');
   const [formData, setFormData] = useState<LetterInput>({
     recipient: '',
@@ -77,7 +81,7 @@ export default function LetterForm() {
               type="text"
               value={formData.recipient}
               onChange={(e) => updateField('recipient', e.target.value)}
-              placeholder="예: 늘 든든했던 아빠, 무지개 다리를 건넌 몽자, 10년지기 철수"
+              placeholder="예: 늘 든든했던 아빠, 무지개 다리를 건넌 몽자"
               className="w-full border-b border-gray-300 bg-transparent py-2 focus:outline-none"
             />
             <p className="mt-1 text-sm text-gray-400">
@@ -103,7 +107,7 @@ export default function LetterForm() {
 
           <button
             onClick={handleProceedToEmail}
-            className="mt-4 w-full rounded-full bg-amber-600 py-3 text-white"
+            className="cursor-pointer mt-4 w-full rounded-full bg-amber-600 py-3 text-white"
           >
             📮 하늘로 보내기
           </button>
@@ -130,7 +134,7 @@ export default function LetterForm() {
 
           <button
             onClick={handleSubmit}
-            className="mt-4 w-full rounded-full bg-amber-600 py-3 text-white"
+            className="cursor-pointer mt-4 w-full rounded-full bg-amber-600 py-3 text-white"
           >
             답장 기다리기
           </button>
@@ -148,8 +152,12 @@ export default function LetterForm() {
           <p>당신의 편지가 하늘로 전달되었습니다.</p>
           <p className="text-gray-500">약 10분 후, 당신의 메일함으로 전해드릴게요.</p>
           <div className="flex gap-2">
-            <button onClick={handleResetForm}>또 다른 편지 쓰기</button>
-            <button>마치기</button>
+            <button onClick={handleResetForm} className="cursor-pointer">
+              또 다른 편지 쓰기
+            </button>
+            <button onClick={onFinish} className="cursor-pointer">
+              마치기
+            </button>
           </div>
         </div>
       )}
