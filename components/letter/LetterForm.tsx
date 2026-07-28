@@ -156,10 +156,10 @@ export default function LetterForm({ onFinish }: LetterFormProps) {
           key="email"
           className="animate-fade-in space-y-6 flex flex-col items-center justify-center h-full"
         >
-          <p className="text-center text-[#4A3F35]/70">
+          <p className="text-center text-[#4A3F35] text-lg">
             이 편지가 하늘로 가려면, 답장 받을 곳을 알려주세요.
           </p>
-          <p className="text-center text-[#4A3F35]/70">
+          <p className="text-center text-[#4A3F35] text-lg">
             답장은 천국의 우편배달부가 당신의 이메일로 전해드립니다.
           </p>
           <input
@@ -186,14 +186,14 @@ export default function LetterForm({ onFinish }: LetterFormProps) {
 
       {step === 'sending' && (
         <div key="sending" className="animate-fade-in flex h-full items-center justify-center">
-          <p className="text-[#4A3F35]/60">우편배달부가 하늘 길을 나설 준비를 해요...</p>
+          <p className="text-[#4A3F35] text-lg">우편배달부가 하늘 길을 나설 준비를 해요...</p>
         </div>
       )}
 
       {step === 'done' && (
         <div key="done" className="animate-fade-in space-y-4 text-center">
-          <p className="text-[#4A3F35]">당신의 편지가 하늘로 전달되었습니다.</p>
-          <p className="text-[#4A3F35]/60">약 10분 후, 당신의 메일함으로 전해드릴게요.</p>
+          <p className="text-[#4A3F35] text-lg">당신의 편지가 하늘로 전달되었습니다.</p>
+          <p className="text-[#4A3F35] text-lg">약 10분 후, 당신의 메일함으로 전해드릴게요.</p>
           <div className="flex justify-center gap-4 pt-2">
             <button
               onClick={handleResetForm}
@@ -206,8 +206,10 @@ export default function LetterForm({ onFinish }: LetterFormProps) {
             </button>
             <button
               onClick={onFinish}
-              className="cursor-pointer font-letter text-[16px] font-medium tracking-[0.04em] text-[#4A3F35] px-9 py-2.5 rounded-full shadow-[0_8px_20px_rgba(180,170,150,0.25)] hover:shadow-[0_10px_24px_rgba(180,170,150,0.35)] hover:-translate-y-px transition-[transform,box-shadow] duration-300 ease-out"
-              style={{ backgroundImage: 'linear-gradient(100deg, #E4DCC8 0%, #D2C7AE 100%)' }}
+              className="cursor-pointer font-letter text-[16px] tracking-[0.04em] text-[#4A3F35] px-[54px] py-[15px] rounded-full shadow-[0_8px_20px_rgba(216,140,90,0.22)] hover:shadow-[0_10px_24px_rgba(216,140,90,0.32)] hover:-translate-y-px transition-[transform,box-shadow] duration-300 ease-out flex justify-center items-center font-bold mt-5"
+              style={{
+                backgroundImage: 'linear-gradient(100deg, #F6E7C7 0%, #F0D4A8 50%, #F6E7C7 100%)',
+              }}
             >
               마치기
             </button>

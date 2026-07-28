@@ -43,7 +43,10 @@ export default function LetterModal({ isOpen, onClose }: LetterModalProps) {
           ${visible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}
         `}
       >
-        <button onClick={onClose} className="cursor-pointer absolute top-4 right-4 ...">
+        <button
+          onClick={onClose}
+          className="cursor-pointer absolute top-6 right-6 text-2xl text-[#4A3F35]"
+        >
           ✕
         </button>
 
