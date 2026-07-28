@@ -39,12 +39,14 @@ export default function LetterModal({ isOpen, onClose }: LetterModalProps) {
       <div className="absolute inset-0 bg-black/50" />
 
       <div
-        className={`relative z-10 bg-[#F5F3ED] rounded-lg w-[90%] max-w-md p-8
-          transition-all duration-300 ease-out
+        className={`relative z-10 bg-[#FAF8F2] rounded-lg w-[90%] max-w-xl lg:max-w-2xl xl:max-w-2xl max-h-[90vh] overflow-y-auto py-20 px-16
           ${visible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}
         `}
       >
-        <button onClick={onClose} className="cursor-pointer absolute top-4 right-4 ...">
+        <button
+          onClick={onClose}
+          className="cursor-pointer absolute top-6 right-6 text-2xl text-[#4A3F35]"
+        >
           ✕
         </button>
 

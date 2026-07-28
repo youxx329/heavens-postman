@@ -117,16 +117,11 @@ export default function SequentialCopy({ onWriteLetterClick }: SequentialCopyPro
       {isLastStep && (
         <button
           onClick={onWriteLetterClick}
-          className={`font-sans text-[#4A3E3D] text-base md:text-[20px] font-bold
-    px-8 py-3 rounded-full
-    bg-gradient-to-r from-[#f6d365] via-[#fda085] to-[#f6d365]
-    bg-[length:200%_auto] bg-left
-    hover:bg-right
-    transition-all duration-500 ease-out cursor-pointer shadow-lg flex justify-center items-center
-    ${showButton ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'}
-  `}
+          className={`cursor-pointer font-letter text-[20px] tracking-[0.04em] text-[#FBF6ED] px-[45px] py-[15px] rounded-full hover:shadow-[0_10px_24px_rgba(216,140,90,0.42)] hover:-translate-y-px transition-[transform,box-shadow] duration-400 ease-out flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(251,246,237,0.8),0_0_40px_rgba(251,246,237,0.4),0_8px_20px_rgba(216,140,90,0.32)] font-bold 
+            ${showButton ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1'}`}
+          style={{ backgroundImage: 'linear-gradient(100deg, #D8A657 0%, #E8926B 100%)' }}
         >
-          편지 쓰기 <Feather className="w-4 h-4 ml-1" />
+          편지 쓰기 <Feather className="w-4 h-4" />
         </button>
       )}
     </div>
