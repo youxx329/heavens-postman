@@ -4,7 +4,6 @@ import {
   Font,
   Head,
   Html,
-  Preview,
   Section,
   Tailwind,
   Text,
@@ -15,7 +14,7 @@ interface LetterReplyEmailProps {
   body: string; // AI가 생성한 답장 본문
 }
 
-export default function LetterReplyEmail({ senderName, body }: LetterReplyEmailProps) {
+export default function LetterReplyEmail({ body }: LetterReplyEmailProps) {
   return (
     <Html lang="ko">
       <Head>
@@ -31,16 +30,11 @@ export default function LetterReplyEmail({ senderName, body }: LetterReplyEmailP
         />
       </Head>
 
-      {/* 받은편지함 목록에 뜨는 미리보기 텍스트 */}
-      <Preview>{senderName}에게.</Preview>
-
       <Tailwind>
         <Body className=" font-serif m-0 p-0 bg-white">
           <Container className="mx-auto max-w-120 py-20 px-8 bg-[#fdfbf7]">
             <Section>
               <Text className="break-keep text-[15px] leading-loose text-[#3A3630] whitespace-pre-line m-0">
-                {senderName}에게,
-                {'\n\n'}
                 {body}
               </Text>
             </Section>
