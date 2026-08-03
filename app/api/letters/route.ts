@@ -1,5 +1,5 @@
 import { sendLetterReply } from '@/lib/resend';
-import type { LetterInput } from '@/types/letter';
+import type { LetterInput, PlanResult } from '@/types/letter';
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
@@ -8,7 +8,53 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// 시스템 프롬프트 생성 함수
+function stripTrailingParticle(name: string): string {
+  // 폼 설계상 자주 붙는 조사: 가/이/는/은
+  const particles = ['가', '이', '는', '은'];
+  for (const p of particles) {
+    if (name.length > p.length && name.endsWith(p)) {
+      return name.slice(0, -p.length);
+    }
+  }
+  return name;
+}
+
+function hasBatchim(str: string): boolean {
+  const lastChar = str[str.length - 1];
+  const code = lastChar.charCodeAt(0) - 0xac00;
+  if (code < 0 || code > 11171) return false; // 한글 완성형 범위 밖(영문 등)이면 안전하게 false
+  return code % 28 !== 0;
+}
+
+function buildGreeting(senderName: string): string {
+  const baseName = stripTrailingParticle(senderName);
+  const josa = hasBatchim(baseName) ? '아' : '야';
+  return `${baseName}${josa},`;
+}
+
+function enforceGreeting(reply: string, greeting: string): string {
+  console.log('=== enforceGreeting 호출됨 ===');
+  console.log('greeting:', JSON.stringify(greeting));
+  console.log('reply 앞부분:', JSON.stringify(reply.slice(0, 50)));
+  const idx = reply.indexOf(greeting);
+  console.log('idx:', idx);
+
+  if (idx === -1) {
+    return `${greeting}\n\n${reply.trim()}`;
+  }
+  return reply.slice(idx).trim();
+}
+
+function getTargetParagraphRange(letterContent: string): string {
+  const length = letterContent.trim().length;
+  if (length < 100) return '2~3문단';
+  if (length < 300) return '3~5문단';
+  return '5~7문단';
+}
+
+// ─────────────────────────────────────────
+// 기존 단일 호출 프롬프트 (폴백용으로 유지)
+// ─────────────────────────────────────────
 function buildSystemPrompt(input: LetterInput): string {
   return `당신은 세상을 떠난 존재가 되어, 당신을 그리워하는 사람에게 답장을 씁니다.
 받는 사람이 지정한 당신의 정체는 다음과 같습니다: "${input.recipient}"
@@ -47,7 +93,156 @@ function buildSystemPrompt(input: LetterInput): string {
 - 종교적·사후세계 단정을 피하고, 따뜻함에 집중한다.`;
 }
 
+// ─────────────────────────────────────────
+// Step 1: Plan 프롬프트
+// ─────────────────────────────────────────
+function buildPlanPrompt(input: LetterInput): string {
+  return `당신은 세상을 떠난 존재가 되어 답장을 쓰기 전, 답장의 설계도(plan)만 짜는 역할을 합니다.
+실제 편지 문장을 쓰지 않고, 아래 형식의 JSON만 출력합니다.
+
+받는 사람이 지정한 당신의 정체: "${input.recipient}"
+편지를 쓴 사람: "${input.senderName}"
+편지 원문:
+"""
+${input.letterContent}
+"""
+
+[분석 지침]
+- 편지에서 다뤄진 소재 중, 감정적으로 가장 울림이 큰 것 1~2개만 고른다. 소재가 3개 이상이어도 전부 다루려 하지 않는다.
+- 그중 가장 먼저 반응해야 할 소재(leadTopic)를 정한다. 반드시 편지에 처음 등장한 소재일 필요는 없다.
+- 감정 흐름을 3단계로 설계한다 (예: 반가움 → 안심 → 다독임). 이 순서가 실제 답장 문단의 뼈대가 된다.
+- 편지에 언급됐지만 답장에서 비중 있게 다루지 않을 소재는 structureNote에 "짧게 스치듯 언급" 또는 "생략" 중 어떻게 처리할지 적는다.
+
+[출력 형식]
+아래 JSON 스키마만 출력한다. 설명, 인사, 마크다운 코드블럭(\`\`\`) 없이 순수 JSON 문자열만 반환한다.
+{
+  "keyTopics": string[],
+  "leadTopic": string,
+  "emotionFlow": string[],
+  "structureNote": string
+}`;
+}
+
+// ─────────────────────────────────────────
+// Step 2: Write 프롬프트 (plan 반영)
+// ─────────────────────────────────────────
+function buildWritePrompt(input: LetterInput, plan: PlanResult): string {
+  const baseName = stripTrailingParticle(input.senderName);
+  const greeting = buildGreeting(input.senderName);
+  const paragraphRange = getTargetParagraphRange(input.letterContent);
+
+  return `당신은 세상을 떠난 존재가 되어, 당신을 그리워하는 사람에게 답장을 씁니다.
+받는 사람이 지정한 당신의 정체: "${input.recipient}"
+편지를 쓴 사람의 이름(조사 없는 원형): "${baseName}"
+
+[1인칭 원칙 — 절대 규칙]
+- 당신은 "${input.recipient}" 그 자신입니다. 반드시 1인칭("나", "내가")으로 말한다.
+- 자기 자신을 3인칭 이름으로 부르지 않는다.
+
+[출력 규칙 — 절대 규칙]
+- 답장의 첫 줄은 반드시 아래 문장을 그대로 사용한다. 변형하지 않는다.
+  "${greeting}"
+- 첫 줄 다음 한 줄을 띄우고 바로 본문을 시작한다.
+- 편지 원문(letterContent)에 등장하는 인사말·호칭 형식(예: "OO에게,", "OO야,")은 참고하지 않는다. 그 형식을 절대 복제하지 않는다. 첫 줄은 오직 위에서 지정한 문장만 쓴다.
+
+[이 답장의 설계도 — 반드시 이 순서와 구조를 따른다]
+- 가장 먼저 반응할 소재: ${plan.leadTopic}
+- 감정 흐름: ${plan.emotionFlow.join(' → ')}
+- 그 외 처리 방식: ${plan.structureNote}
+
+편지 원문(세부 사실관계·감정 참고용. 문단 순서·호칭 패턴의 기준으로 삼지 않는다):
+"""
+${input.letterContent}
+"""
+
+[호칭 규칙 — 본문 내에서]
+- 본문 중간에 호칭을 쓸 때는 "${baseName}"에 받침 유무에 맞는 조사(이/가, 은/는)를 자연스럽게 붙인다.
+- 받는 사람의 정체(관계)가 부모-자식, 조부모-손주처럼 명확하면 이름과 그 관계의 호칭(딸/아들/우리 애 등)을 자연스럽게 섞어 쓴다.
+- 첫 줄 인사말 외에 본문에서 호칭은 1~2번 정도만.
+- "나"를 문맥에 맞는 형태로 정확히 활용한다. 예: 목적어/소유격일 땐 "내"("내 생각", "나를"), 주어일 땐 "내가"/"나는". "나 생각이 나면"처럼 문법이 어긋난 표현을 쓰지 않는다.
+
+[말투 — 받는 사람의 정체에 맞게 반드시 반영]
+- 반려동물: 천진하고 순수하며 귀엽고 장난기 있는 말투. 어른스럽거나 격식 있는 표현("바란다", "믿는다" 등) 금지.
+- 부모·조부모: 걱정하고 다독이는 든든하고 따뜻한 어조.
+- 친구·연인: 편하고 다정하며 친근한 말투.
+- 그 외 관계: 원문 어조를 참고해 가장 자연스러운 톤으로.
+
+[핵심 지침]
+- 위 설계도의 감정 흐름 순서를 문단 구성의 뼈대로 삼는다.
+- "~라니 ~하다" 식 반복 패턴 금지.
+- 겪지 않은 구체적 사건은 지어내지 않되, 감정 표현은 자유롭게.
+- 슬픔 속에서도 따뜻한 밝음의 균형.
+- 실제로 말하듯 편안하게, ${paragraphRange}. 편지 원문이 짧으면 답장도 짧게, 원문 분량에 맞춰 억지로 늘리지 않는다.
+- 마지막은 글쓴이를 안심시키고 다독이는 한 문장으로.
+- 사후세계(무지개다리 등)에 대해 말할 때는, 화자 자신이 이미 그곳에 있다는 관점에서 현재 상태를 서술한다("나는 지금 아프지 않고, 잘 먹고, 신나게 놀고 있어"). 마치 아직 그곳에 가지 않은 것처럼 기원하거나 조언하는 투("~하면 좋겠어", "~하길 바라")로 쓰지 않는다.
+
+[절대 규칙]
+- "나는 AI다" 같은 메타 발언 금지.
+- 종교적·사후세계 단정 금지.`;
+}
+
+// ─────────────────────────────────────────
+// OpenAI 호출 헬퍼 (기존 completion 로직 재사용)
+// ─────────────────────────────────────────
+async function callOpenAI(systemPrompt: string, userContent: string): Promise<string> {
+  const completion = await openai.chat.completions.create({
+    model: 'gpt-5.4-mini',
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userContent },
+    ],
+    temperature: 0.8,
+  });
+  return completion.choices[0]?.message?.content ?? '';
+}
+
+// ─────────────────────────────────────────
+// 2단계 생성 + Fallback 로직
+// ─────────────────────────────────────────
+async function generateLetterReply(input: LetterInput): Promise<string> {
+  let plan: PlanResult | null = null;
+
+  // Step 1: Plan 생성 시도
+  try {
+    const planRaw = await callOpenAI(buildPlanPrompt(input), input.letterContent);
+    const cleaned = planRaw
+      .trim()
+      .replace(/^```json\s*/i, '')
+      .replace(/^```\s*/i, '')
+      .replace(/```$/i, '')
+      .trim();
+    const parsed = JSON.parse(cleaned);
+
+    // 스키마 검증 — 형태가 어긋나면 fallback
+    if (
+      !Array.isArray(parsed.keyTopics) ||
+      !Array.isArray(parsed.emotionFlow) ||
+      parsed.emotionFlow.length !== 3 ||
+      typeof parsed.leadTopic !== 'string' ||
+      typeof parsed.structureNote !== 'string'
+    ) {
+      throw new Error('Plan schema mismatch');
+    }
+    plan = parsed as PlanResult;
+  } catch (planError) {
+    console.error('Plan 생성/파싱 실패, 단일 프롬프트로 폴백:', planError);
+    return callOpenAI(buildSystemPrompt(input), input.letterContent);
+  }
+
+  // Step 2: Write 생성 시도
+  try {
+    const greeting = buildGreeting(input.senderName);
+    const written = await callOpenAI(buildWritePrompt(input, plan), input.letterContent);
+    return enforceGreeting(written, greeting);
+  } catch (writeError) {
+    console.error('Write 단계 실패, 단일 프롬프트로 폴백:', writeError);
+    return callOpenAI(buildSystemPrompt(input), input.letterContent);
+  }
+}
+
+// ─────────────────────────────────────────
 // POST /api/letters 핸들러
+// ─────────────────────────────────────────
 export async function POST(req: NextRequest) {
   try {
     // ── 1단계: 요청 받기 ──
@@ -68,21 +263,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ── 3단계: OpenAI 호출 ──
+    // ── 3단계: 답장 생성 (2단계 생성 + 폴백) ──
     let reply: string;
     try {
-      const completion = await openai.chat.completions.create({
-        model: 'gpt-5.4-mini',
-        messages: [
-          {
-            role: 'system',
-            content: buildSystemPrompt({ recipient, senderName, letterContent, senderEmail }),
-          },
-          { role: 'user', content: letterContent },
-        ],
-        temperature: 0.8,
-      });
-      reply = completion.choices[0]?.message?.content ?? '';
+      reply = await generateLetterReply({ recipient, senderName, letterContent, senderEmail });
     } catch (err) {
       console.error('GPT 답장 생성 실패:', err);
       return NextResponse.json(
