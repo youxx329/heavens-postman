@@ -14,15 +14,15 @@ interface SequentialCopyProps {
 const STEPS: StepConfig[] = [
   {
     lines: ['하늘에 있는 당신의 소중한 이에게,', '전하지 못한 마음이 있나요?'],
-    visibleDuration: 3600,
+    visibleDuration: 4200,
   },
   {
     lines: ['천국의 우편배달부가', '그 마음을 대신 전해드립니다.'],
-    visibleDuration: 3600,
+    visibleDuration: 4200,
   },
   {
     lines: ['어쩌면,', '하늘에서 답장이 도착할지도 몰라요.'],
-    visibleDuration: 3800,
+    visibleDuration: 4200,
   },
   {
     lines: ['편지를 써보시겠어요?'],
@@ -34,7 +34,7 @@ type Phase = 'enter' | 'visible' | 'exit';
 
 const FADE_DURATION = 600; //
 const BUTTON_DELAY = 300; // ms, 문구 페이드인 끝난 후 버튼 뜨기까지 텀
-const INITIAL_DELAY = 1000; // ms, 페이지 로드 후 첫 문구가 뜨기까지의 딜레이
+const INITIAL_DELAY = 500; // ms, 페이지 로드 후 첫 문구가 뜨기까지의 딜레이
 
 export default function SequentialCopy({ onWriteLetterClick }: SequentialCopyProps) {
   const [phase, setPhase] = useState<Phase>('enter');
