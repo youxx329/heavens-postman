@@ -3,7 +3,7 @@
 import type { LetterInput } from '@/types/letter';
 import { useRef, useState } from 'react';
 
-type Step = 'writing' | 'email' | 'sending' | 'done';
+type Step = 'writing' | 'email' | 'confirm' | 'sending' | 'done';
 
 interface LetterFormProps {
   onFinish: () => void;
@@ -34,12 +34,18 @@ export default function LetterForm({ onFinish }: LetterFormProps) {
     setStep('email');
   };
 
-  // "답장 기다리기" 클릭 → 실제 API 호출은 여기서
-  const handleSubmit = async () => {
+  // email 단계 → confirm 단계 (형식 검증만, API 호출 없음)
+  const handleProceedToConfirm = () => {
     if (!isValidEmail(formData.senderEmail)) {
       setError('이 주소로는 답장이 길을 잃을 것 같아요. 메일 주소를 다시 한 번 확인해주세요.');
       return;
     }
+    setError(null);
+    setStep('confirm');
+  };
+
+  // confirm 단계 → 실제 전송 (API 호출)
+  const handleConfirmSend = async () => {
     setError(null);
     setStep('sending');
     try {
@@ -48,13 +54,18 @@ export default function LetterForm({ onFinish }: LetterFormProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-
       if (!res.ok) throw new Error('failed');
       setStep('done');
     } catch {
       setError('편지가 길을 잃은 것 같아요. 다시 한 번 보내볼까요?');
-      setStep('email'); // 실패하면 이메일 입력 단계로 되돌림
+      setStep('confirm'); // email이 아니라 confirm으로
     }
+  };
+
+  // confirm 단계 → "다시 확인할게요" 클릭
+  const handleBackToEmail = () => {
+    setError(null);
+    setStep('email');
   };
 
   // "또 다른 편지 쓰기" 클릭 -> 첫 단계로 돌아가기
@@ -176,14 +187,52 @@ export default function LetterForm({ onFinish }: LetterFormProps) {
           {error && <p className="text-center text-[16px] text-red-400 break-keep">{error}</p>}
 
           <button
-            onClick={handleSubmit}
+            onClick={handleProceedToConfirm}
             className="cursor-pointer font-letter text-[16px] tracking-[0.04em] text-[#FBF6ED] px-[54px] py-[15px] rounded-full shadow-[0_8px_20px_rgba(216,140,90,0.32)] hover:shadow-[0_10px_24px_rgba(216,140,90,0.42)] hover:-translate-y-px transition-[transform,box-shadow] duration-300 ease-out flex justify-center items-center font-bold mt-5"
             style={{
               backgroundImage: 'linear-gradient(100deg, #D8A657 0%, #E8926B 50%, #D8A657 100%)',
             }}
           >
-            답장 기다리기
+            주소 보내기
           </button>
+        </div>
+      )}
+
+      {step === 'confirm' && (
+        <div
+          key="confirm"
+          className="animate-fade-in space-y-6 flex flex-col items-center justify-center h-full"
+        >
+          <p className="text-center text-[#4A3F35] text-lg">이 주소로 답장을 보내드릴게요.</p>
+          <p className="text-center text-[#4A3F35] text-xl font-bold break-all">
+            {formData.senderEmail}
+          </p>
+          <p className="text-center text-[#4A3F35]/60 text-[16px] italic">
+            편지가 무사히 도착할 수 있도록 수신 이메일 주소를 다시 한번 살펴봐 주세요.
+          </p>
+
+          {error && <p className="text-center text-[16px] text-red-400 break-keep">{error}</p>}
+
+          <div className="flex justify-center gap-4 pt-2">
+            <button
+              onClick={handleBackToEmail}
+              className="cursor-pointer font-letter text-[16px] tracking-[0.04em] text-[#3A2F26] px-[54px] py-[15px] rounded-full shadow-[0_8px_20px_rgba(216,140,90,0.22)] hover:shadow-[0_10px_24px_rgba(216,140,90,0.32)] hover:-translate-y-px transition-[transform,box-shadow] duration-300 ease-out flex justify-center items-center font-bold"
+              style={{
+                backgroundImage: 'linear-gradient(100deg, #F6E7C7 0%, #F0D4A8 50%, #F6E7C7 100%)',
+              }}
+            >
+              다시 확인하기
+            </button>
+            <button
+              onClick={handleConfirmSend}
+              className="cursor-pointer font-letter text-[16px] tracking-[0.04em] text-[#FBF6ED] px-[54px] py-[15px] rounded-full shadow-[0_8px_20px_rgba(216,140,90,0.32)] hover:shadow-[0_10px_24px_rgba(216,140,90,0.42)] hover:-translate-y-px transition-[transform,box-shadow] duration-300 ease-out flex justify-center items-center font-bold"
+              style={{
+                backgroundImage: 'linear-gradient(100deg, #D8A657 0%, #E8926B 50%, #D8A657 100%)',
+              }}
+            >
+              답장 기다리기
+            </button>
+          </div>
         </div>
       )}
 
@@ -200,18 +249,18 @@ export default function LetterForm({ onFinish }: LetterFormProps) {
           <div className="flex justify-center gap-4 pt-2">
             <button
               onClick={handleResetForm}
-              className="cursor-pointer font-letter text-[16px] tracking-[0.04em] text-[#FBF6ED] px-[54px] py-[15px] rounded-full shadow-[0_8px_20px_rgba(216,140,90,0.32)] hover:shadow-[0_10px_24px_rgba(216,140,90,0.42)] hover:-translate-y-px transition-[transform,box-shadow] duration-300 ease-out flex justify-center items-center font-bold mt-5"
+              className="cursor-pointer font-letter text-[16px] tracking-[0.04em] text-[#3A2F26] px-[54px] py-[15px] rounded-full shadow-[0_8px_20px_rgba(216,140,90,0.22)] hover:shadow-[0_10px_24px_rgba(216,140,90,0.32)] hover:-translate-y-px transition-[transform,box-shadow] duration-300 ease-out flex justify-center items-center font-bold mt-5"
               style={{
-                backgroundImage: 'linear-gradient(100deg, #D8A657 0%, #E8926B 50%, #D8A657 100%)',
+                backgroundImage: 'linear-gradient(100deg, #F6E7C7 0%, #F0D4A8 50%, #F6E7C7 100%)',
               }}
             >
               또 다른 편지 쓰기
             </button>
             <button
               onClick={onFinish}
-              className="cursor-pointer font-letter text-[16px] tracking-[0.04em] text-[#4A3F35] px-[54px] py-[15px] rounded-full shadow-[0_8px_20px_rgba(216,140,90,0.22)] hover:shadow-[0_10px_24px_rgba(216,140,90,0.32)] hover:-translate-y-px transition-[transform,box-shadow] duration-300 ease-out flex justify-center items-center font-bold mt-5"
+              className="cursor-pointer font-letter text-[16px] tracking-[0.04em] text-[#FBF6ED] px-[54px] py-[15px] rounded-full shadow-[0_8px_20px_rgba(216,140,90,0.32)] hover:shadow-[0_10px_24px_rgba(216,140,90,0.42)] hover:-translate-y-px transition-[transform,box-shadow] duration-300 ease-out flex justify-center items-center font-bold mt-5"
               style={{
-                backgroundImage: 'linear-gradient(100deg, #F6E7C7 0%, #F0D4A8 50%, #F6E7C7 100%)',
+                backgroundImage: 'linear-gradient(100deg, #D8A657 0%, #E8926B 50%, #D8A657 100%)',
               }}
             >
               마치기
