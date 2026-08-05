@@ -29,7 +29,7 @@ export async function sendLetterReply({
   const { error } = await resend.emails.send({
     from: `천국의 우편배달부 <${process.env.FROM_EMAIL}>`,
     to: senderEmail,
-    subject: `하늘에서 온 편지 한 통이 도착했습니다. 💫`,
+    subject: `하늘에서 온 편지 한 통이 도착했습니다.`,
     html: emailHtml,
     scheduledAt,
   });

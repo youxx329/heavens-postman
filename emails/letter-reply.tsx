@@ -39,6 +39,20 @@ export default function LetterReplyEmail({ body }: LetterReplyEmailProps) {
               </Text>
             </Section>
           </Container>
+
+          {/* 편지 컨테이너 바깥, 별도 섹션 — 작고 눈에 안 띄게 */}
+          <Section className="mx-auto max-w-120 px-8 pb-8 mt-10">
+            <Text className="text-[11px] leading-relaxed text-[#B0AAA0] text-center m-0">
+              3 ⅖ Sky Platform, Cloud Street 77, Heaven&apos;s Postman Station
+              <br />
+              Heaven&apos;s Postman · heavenspostman.site
+              <br />
+              This email was sent because you wrote a letter on Heaven&apos;s Postman.{' '}
+              <a href="https://heavenspostman.site" className="text-[#B0AAA0] underline">
+                Unsubscribe
+              </a>
+            </Text>
+          </Section>
         </Body>
       </Tailwind>
     </Html>
