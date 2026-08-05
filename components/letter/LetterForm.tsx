@@ -101,7 +101,7 @@ export default function LetterForm({ onFinish }: LetterFormProps) {
               />{' '}
               에게
             </p>
-            <p className="mt-2 text-[15px] italic text-[#4A3F35]/50 break-keep">
+            <p className="mt-2 text-[15px] italic text-[#4A3F35]/60 break-keep">
               ↳ 우편배달부가 헤매지 않도록, 관계를 짧게 알려주세요. 예: 무지개 다리 건넌 몽자,{' '}
               <br />늘 든든했던 아빠
             </p>
@@ -113,7 +113,7 @@ export default function LetterForm({ onFinish }: LetterFormProps) {
             onChange={handleContentChange}
             placeholder="편지 내용을 적어주세요"
             rows={7}
-            className="w-full overflow-hidden resize-none bg-transparent py-2 placeholder:text-[#4A3F35]/40 focus:outline-none text-[20px]"
+            className="w-full overflow-hidden resize-none bg-transparent py-2 placeholder:text-[#4A3F35]/40 focus:outline-none text-[20px] italic"
             style={{
               lineHeight: LINE_HEIGHT,
               backgroundImage: `repeating-linear-gradient(transparent, transparent calc(${LINE_HEIGHT} - 1px), rgba(74,63,53,0.25) calc(${LINE_HEIGHT} - 1px), rgba(74,63,53,0.25) ${LINE_HEIGHT})`,
@@ -121,7 +121,7 @@ export default function LetterForm({ onFinish }: LetterFormProps) {
             }}
           ></textarea>
 
-          <div className="flex justify-end my-8">
+          <div className="flex items-end my-8 flex-col">
             <p className="text-2xl">
               <input
                 type="text"
@@ -132,6 +132,9 @@ export default function LetterForm({ onFinish }: LetterFormProps) {
                 style={{ width: `${Math.max(formData.senderName.length, 6)}em` }}
               />{' '}
               , 마음을 담아
+            </p>
+            <p className="mt-2 text-[15px] italic text-[#4A3F35]/60">
+              ↳ 성을 뺀 이름만 적어주세요. 예: 민준, 수지
             </p>
           </div>
 
