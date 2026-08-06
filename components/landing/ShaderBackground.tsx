@@ -214,7 +214,7 @@ export default function CloudBackground() {
         playsInline
         src={VIDEO_SRC}
         onCanPlay={() => setVideoReady(true)}
-        className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ease-out"
+        className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ease-out"
         style={{ opacity: videoReady ? (activeIsA ? 1 : 0) : 0, transform: 'scaleX(-1)' }}
       />
       <video
