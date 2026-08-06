@@ -204,6 +204,7 @@ export default function CloudBackground() {
         ref={videoARef}
         muted
         playsInline
+        poster="/clouds-sunset-thumbnail.jpg"
         src={VIDEO_SRC}
         className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1200 ease-in-out"
         style={{ opacity: activeIsA ? 1 : 0, transform: 'scaleX(-1)' }}
@@ -212,6 +213,7 @@ export default function CloudBackground() {
         ref={videoBRef}
         muted
         playsInline
+        poster="/clouds-sunset-thumbnail.jpg"
         src={VIDEO_SRC}
         className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1200 ease-in-out"
         style={{ opacity: activeIsA ? 0 : 1, transform: 'scaleX(-1)' }}
