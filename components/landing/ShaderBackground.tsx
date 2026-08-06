@@ -199,7 +199,13 @@ export default function CloudBackground() {
   }, []);
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-black">
+    <div
+      className="relative w-full h-screen overflow-hidden"
+      style={{
+        background:
+          'linear-gradient(180deg, #7B7C93 0%, #9C8689 5%, #C69A85 11%, #E4AB84 16%, #F2BC88 21%, #F9CE8E 26%, #FBDD9B 31%, #FDEAAE 36%, #FEF4CC 40%, #F8DDA8 45%, #E9BE8C 50%, #D8A67B 55%, #C4926E 61%, #AE7F62 67%, #9C7157 74%, #8E6650 83%, #875F4A 92%, #8E6852 100%)',
+      }}
+    >
       <video
         ref={videoARef}
         muted
