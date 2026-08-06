@@ -167,7 +167,7 @@ export default function CloudBackground() {
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<StreakRenderer | null>(null);
-  const frameRef = useRef<number>();
+  const frameRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     if (!canvasRef.current) return;
