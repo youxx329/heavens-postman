@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 const FADE_DURATION = 1.2; // 영상 크로스페이드 길이(초)
-const VIDEO_SRC = '/clouds-sunset.mp4'; // public 폴더 경로로 수정
+const VIDEO_SRC = '/clouds-sunset.mp4';
 
 // ---------- 불빛(streak) 셰이더 렌더러 ----------
 class StreakRenderer {

@@ -11,6 +11,7 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --animate-fade-in: fade-in 0.3s ease-in-out;
+  --animate-float: float 3s ease-in-out infinite;
   --font-letter: var(--font-noto-serif-kr), serif;
 
   @keyframes fade-in {
@@ -21,17 +22,20 @@
       opacity: 1;
     }
   }
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-letter), Arial, Helvetica, sans-serif;
 }
