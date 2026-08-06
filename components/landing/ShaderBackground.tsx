@@ -198,6 +198,8 @@ export default function CloudBackground() {
     };
   }, []);
 
+  const [videoReady, setVideoReady] = useState(false);
+
   return (
     <div
       className="relative w-full h-screen overflow-hidden"
@@ -211,8 +213,9 @@ export default function CloudBackground() {
         muted
         playsInline
         src={VIDEO_SRC}
-        className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1200 ease-in-out"
-        style={{ opacity: activeIsA ? 1 : 0, transform: 'scaleX(-1)' }}
+        onCanPlay={() => setVideoReady(true)}
+        className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ease-out"
+        style={{ opacity: videoReady ? (activeIsA ? 1 : 0) : 0, transform: 'scaleX(-1)' }}
       />
       <video
         ref={videoBRef}
