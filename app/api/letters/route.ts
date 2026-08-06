@@ -8,17 +8,6 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-function stripTrailingParticle(name: string): string {
-  // 폼 설계상 자주 붙는 조사: 가/이/는/은
-  const particles = ['가', '이', '는', '은'];
-  for (const p of particles) {
-    if (name.length > p.length && name.endsWith(p)) {
-      return name.slice(0, -p.length);
-    }
-  }
-  return name;
-}
-
 function hasBatchim(str: string): boolean {
   const lastChar = str[str.length - 1];
   const code = lastChar.charCodeAt(0) - 0xac00;
@@ -27,9 +16,8 @@ function hasBatchim(str: string): boolean {
 }
 
 function buildGreeting(senderName: string): string {
-  const baseName = stripTrailingParticle(senderName);
-  const josa = hasBatchim(baseName) ? '아' : '야';
-  return `${baseName}${josa},`;
+  const josa = hasBatchim(senderName) ? '아' : '야';
+  return `${senderName}${josa},`;
 }
 
 function enforceGreeting(reply: string, greeting: string): string {
@@ -49,12 +37,11 @@ function getTargetParagraphRange(letterContent: string): string {
 }
 
 function buildCallForms(senderName: string): { subjectForm: string; vocativeForm: string } {
-  const baseName = stripTrailingParticle(senderName);
-  const batchim = hasBatchim(baseName);
+  const batchim = hasBatchim(senderName);
 
   return {
-    subjectForm: `${baseName}${batchim ? '이' : '가'}`, // 주어형: 민준이가 / 수지가
-    vocativeForm: `${baseName}${batchim ? '아' : '야'}`, // 호칭형: 민준아 / 수지야
+    subjectForm: `${senderName}${batchim ? '이' : '가'}`, // 주어형: 민준이가 / 수지가
+    vocativeForm: `${senderName}${batchim ? '아' : '야'}`, // 호칭형: 민준아 / 수지야
   };
 }
 
@@ -177,7 +164,7 @@ function buildSystemPrompt(input: LetterInput): string {
 // Write 프롬프트 (few-shot 기반)
 // ─────────────────────────────────────────
 function buildWritePrompt(input: LetterInput): string {
-  const baseName = stripTrailingParticle(input.senderName);
+  const baseName = input.senderName;
   const greeting = buildGreeting(input.senderName);
   const { subjectForm, vocativeForm } = buildCallForms(input.senderName);
   const paragraphRange = getTargetParagraphRange(input.letterContent);
@@ -203,7 +190,7 @@ ${FEW_SHOT_EXAMPLES}
 ${input.letterContent}
 """
 
-[출력 규칙 — 절대 규칙]
+[출력 규칙 — 절대 규칙] 
 - 답장의 첫 줄은 반드시 아래 문장을 그대로 사용한다. 변형하지 않는다.
   "${greeting}"
 - 첫 줄 다음 한 줄을 띄우고 바로 본문을 시작한다.
