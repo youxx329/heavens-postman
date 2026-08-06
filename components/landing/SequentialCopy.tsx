@@ -32,7 +32,7 @@ const STEPS: StepConfig[] = [
 
 type Phase = 'enter' | 'visible' | 'exit';
 
-const FADE_DURATION = 600; //
+const FADE_DURATION = 600;
 const BUTTON_DELAY = 300; // ms, 문구 페이드인 끝난 후 버튼 뜨기까지 텀
 const INITIAL_DELAY = 500; // ms, 페이지 로드 후 첫 문구가 뜨기까지의 딜레이
 
