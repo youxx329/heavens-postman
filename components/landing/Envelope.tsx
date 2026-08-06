@@ -40,8 +40,7 @@ export default function EnvelopeIcon({ onOpen, isClosing }: EnvelopeIconProps) {
   return (
     <div className="absolute inset-0 flex items-center justify-center">
       <svg
-        width="400"
-        height="400"
+        className="w-50 h-50 md:w-100 md:h-100"
         viewBox="0 0 512 512"
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}

@@ -97,7 +97,7 @@ export default function SequentialCopy({ onWriteLetterClick }: SequentialCopyPro
   }, [currentStep]);
 
   return (
-    <div className="flex flex-col items-center justify-center text-center gap-8 absolute inset-0">
+    <div className="flex flex-col items-center justify-center text-center gap-8 absolute inset-0 px-4">
       <div
         className={`font-letter transition-all duration-600 ease-out
           ${phase === 'visible' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'}
@@ -107,7 +107,7 @@ export default function SequentialCopy({ onWriteLetterClick }: SequentialCopyPro
         {step.lines.map((line, i) => (
           <p
             key={i}
-            className="text-lg md:text-[32px] text-[#4A3F35] leading-relaxed text-shadow-lg"
+            className="text-2xl md:text-[32px] text-[#4A3F35] leading-relaxed text-shadow-lg break-keep"
           >
             {line}
           </p>
@@ -117,7 +117,7 @@ export default function SequentialCopy({ onWriteLetterClick }: SequentialCopyPro
       {isLastStep && (
         <button
           onClick={onWriteLetterClick}
-          className={`cursor-pointer font-letter text-[20px] tracking-[0.04em] text-[#FBF6ED] px-[45px] py-[15px] rounded-full hover:shadow-[0_10px_24px_rgba(216,140,90,0.42)] hover:-translate-y-px transition-[transform,box-shadow] duration-400 ease-out flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(251,246,237,0.8),0_0_40px_rgba(251,246,237,0.4),0_8px_20px_rgba(216,140,90,0.32)] font-bold 
+          className={`cursor-pointer font-letter md:text-[20px] text-[14px] tracking-[0.04em] text-[#FBF6ED] md:px-[45px] md:py-[15px] px-[38px] py-[12px] rounded-full hover:shadow-[0_10px_24px_rgba(216,140,90,0.42)] hover:-translate-y-px transition-[transform,box-shadow] duration-400 ease-out flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(251,246,237,0.8),0_0_40px_rgba(251,246,237,0.4),0_8px_20px_rgba(216,140,90,0.32)] font-bold 
             ${showButton ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1'}`}
           style={{ backgroundImage: 'linear-gradient(100deg, #D8A657 0%, #E8926B 100%)' }}
         >
