@@ -23,11 +23,13 @@ export const metadata: Metadata = {
     description: '그리운 이에게, 하늘 너머로 보내는 편지',
     locale: 'ko_KR',
     type: 'website',
+    images: ['/opengraph-image.png'], // 추가
   },
   twitter: {
     card: 'summary_large_image',
     title: '천국의 우편배달부',
     description: '그리운 이에게, 하늘 너머로 보내는 편지',
+    images: ['/opengraph-image.png'], // 추가
   },
 };
 
