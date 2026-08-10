@@ -10,7 +10,7 @@ interface LetterFormProps {
 }
 
 export default function LetterForm({ onFinish }: LetterFormProps) {
-  const [step, setStep] = useState<Step>('sending');
+  const [step, setStep] = useState<Step>('writing');
   const [formData, setFormData] = useState<LetterInput>({
     recipient: '',
     senderName: '',
