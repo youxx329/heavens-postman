@@ -39,7 +39,7 @@ export default function LetterModal({ isOpen, onClose }: LetterModalProps) {
       <div className="absolute inset-0 bg-black/50" />
 
       <div
-        className={`relative z-10 bg-[#FAF8F2] rounded-lg w-[90%] max-w-xl lg:max-w-2xl xl:max-w-2xl max-h-[80vh] md:max-h-none md:my-0 overflow-y-auto md:py-20 md:px-16 px-8 py-14
+        className={`relative z-10 bg-[#FAF8F2] rounded-lg w-[90%] max-w-xl lg:max-w-2xl xl:max-w-2xl max-h-[80vh] md:my-0 overflow-y-auto md:pt-18 md:pb-12 md:px-16 px-8 py-14 
           ${visible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}
         `}
       >
