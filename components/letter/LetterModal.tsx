@@ -32,14 +32,14 @@ export default function LetterModal({ isOpen, onClose }: LetterModalProps) {
   return (
     <div
       className={`fixed inset-0 z-50 flex items-center justify-center
-        transition-opacity duration-300
+        transition-opacity duration-300 
         ${visible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}
       `}
     >
       <div className="absolute inset-0 bg-black/50" />
 
       <div
-        className={`relative z-10 bg-[#FAF8F2] rounded-lg w-[90%] max-w-xl lg:max-w-2xl xl:max-w-2xl max-h-[90vh] overflow-y-auto md:py-20 md:px-16 px-8 py-14
+        className={`relative z-10 bg-[#FAF8F2] rounded-lg w-[90%] max-w-xl lg:max-w-2xl xl:max-w-2xl max-h-[80vh] md:max-h-none md:my-0 overflow-y-auto md:py-20 md:px-16 px-8 py-14
           ${visible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}
         `}
       >
