@@ -107,7 +107,7 @@ export default function SequentialCopy({ onWriteLetterClick }: SequentialCopyPro
         {step.lines.map((line, i) => (
           <p
             key={i}
-            className="text-[22px] md:text-[32px] text-[#4A3F35] leading-relaxed text-shadow-lg break-keep"
+            className="text-[20px] md:text-[32px] text-[#4A3F35] leading-relaxed text-shadow-lg break-keep"
           >
             {line}
           </p>
@@ -117,7 +117,7 @@ export default function SequentialCopy({ onWriteLetterClick }: SequentialCopyPro
       {isLastStep && (
         <button
           onClick={onWriteLetterClick}
-          className={`cursor-pointer font-letter md:text-[20px] text-[12px] tracking-[0.04em] text-[#FBF6ED] md:px-[45px] md:py-[15px] px-[36px] py-[10px] rounded-full hover:shadow-[0_10px_24px_rgba(216,140,90,0.42)] hover:-translate-y-px transition-[transform,box-shadow] duration-400 ease-out flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(251,246,237,0.8),0_0_40px_rgba(251,246,237,0.4),0_8px_20px_rgba(216,140,90,0.32)] font-bold 
+          className={`cursor-pointer font-letter md:text-[20px] text-[12px] tracking-[0.04em] text-[#FBF6ED] md:px-[45px] md:py-[15px] px-[30px] py-[10px] rounded-full hover:shadow-[0_10px_24px_rgba(216,140,90,0.42)] hover:-translate-y-px transition-[transform,box-shadow] duration-400 ease-out flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(251,246,237,0.8),0_0_40px_rgba(251,246,237,0.4),0_8px_20px_rgba(216,140,90,0.32)] font-bold 
             ${showButton ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1'}`}
           style={{ backgroundImage: 'linear-gradient(100deg, #D8A657 0%, #E8926B 100%)' }}
         >
