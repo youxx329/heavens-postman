@@ -101,7 +101,7 @@ export default function LetterForm({ onFinish }: LetterFormProps) {
       {step === 'writing' && (
         <div key="writing" className="animate-fade-in space-y-6 flex flex-col">
           <div>
-            <p className="md:text-2xl text-[20px] text-[#4A3F35]">
+            <p className="md:text-2xl text-[18px] text-[#4A3F35]">
               <input
                 type="text"
                 value={formData.recipient}
@@ -112,7 +112,7 @@ export default function LetterForm({ onFinish }: LetterFormProps) {
               />{' '}
               에게
             </p>
-            <p className="mt-2 md:text-[16px] text-[14px] italic text-[#4A3F35]/60 break-keep">
+            <p className="mt-2 md:text-[16px] text-[12px] italic text-[#4A3F35]/60 break-keep">
               ↳ 우편배달부가 헤매지 않도록, 관계를 짧게 알려주세요. <br />
               예: 무지개 다리 건넌 몽자, 늘 든든했던 아빠
             </p>
@@ -133,7 +133,7 @@ export default function LetterForm({ onFinish }: LetterFormProps) {
           ></textarea>
 
           <div className="flex items-end my-8 flex-col">
-            <p className="md:text-2xl text-[20px]">
+            <p className="md:text-2xl text-[18px]">
               <input
                 type="text"
                 value={formData.senderName}
@@ -144,7 +144,7 @@ export default function LetterForm({ onFinish }: LetterFormProps) {
               />{' '}
               , 마음을 담아
             </p>
-            <p className="mt-2 md:text-[16px] text-[14px] italic text-[#4A3F35]/60">
+            <p className="mt-2 md:text-[16px] text-[12px] italic text-[#4A3F35]/60">
               ↳ 성을 뺀 이름만 적어주세요. 예: 영은, 은미
             </p>
           </div>

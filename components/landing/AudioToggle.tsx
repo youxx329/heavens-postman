@@ -20,7 +20,7 @@ export default function AudioToggle({ isPlaying, onToggle }: AudioToggleProps) {
         <svg
           width="32"
           height="32"
-          className="md:w-8 md:h-8 w-7 h-7"
+          className="md:w-8 md:h-8 w-6 h-6"
           viewBox="0 0 24 24"
           xmlns="http://www.w3.org/2000/svg"
         >
@@ -31,7 +31,7 @@ export default function AudioToggle({ isPlaying, onToggle }: AudioToggleProps) {
         </svg>
       ) : (
         <svg
-          className="md:w-8 md:h-8 w-7 h-7"
+          className="md:w-8 md:h-8 w-6 h-6"
           viewBox="0 0 100 100"
           xmlns="http://www.w3.org/2000/svg"
         >
