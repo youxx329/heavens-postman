@@ -10,7 +10,7 @@ interface LetterFormProps {
 }
 
 export default function LetterForm({ onFinish }: LetterFormProps) {
-  const [step, setStep] = useState<Step>('writing');
+  const [step, setStep] = useState<Step>('sending');
   const [formData, setFormData] = useState<LetterInput>({
     recipient: '',
     senderName: '',
@@ -247,15 +247,18 @@ export default function LetterForm({ onFinish }: LetterFormProps) {
       )}
 
       {step === 'sending' && (
-        <div key="sending" className="animate-fade-in flex h-full items-center justify-center">
-          <p className="text-[#4A3F35] md:text-lg text-[16px] break-keep flex items-center gap-1">
+        <div
+          key="sending"
+          className="animate-fade-in flex flex-col h-full items-center justify-center gap-1"
+        >
+          <p className="text-[#4A3F35] md:text-lg text-[16px] break-keep text-center">
             우편배달부가 하늘 길을 나설 준비를 해요
-            <span className="inline-flex">
-              <span className="animate-pulse [animation-delay:0ms]">.</span>
-              <span className="animate-pulse [animation-delay:150ms]">.</span>
-              <span className="animate-pulse [animation-delay:300ms]">.</span>
-            </span>
           </p>
+          <span className="inline-flex">
+            <span className="animate-pulse text-[#000000] [animation-delay:0ms]">.</span>
+            <span className="animate-pulse text-[#000000]  [animation-delay:150ms]">.</span>
+            <span className="animate-pulse text-[#000000]  [animation-delay:300ms]">.</span>
+          </span>
         </div>
       )}
 
